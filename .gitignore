@@ -1,0 +1,12 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+# .vs
+/src/.vs
+
+# FindInViewModel
+/src/FindInViewModel/bin
+/src/FindInViewModel/obj
+/src/FindInViewModelExtension/bin
+/src/FindInViewModelExtension/obj
