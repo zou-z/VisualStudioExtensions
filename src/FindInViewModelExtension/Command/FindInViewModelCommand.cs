@@ -44,6 +44,7 @@ namespace FindInViewModelExtension.Command
 
         private async Task ExecuteAsync(CancellationToken cancellationToken)
         {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             dte = await asyncServiceProviderInjection.GetServiceAsync();
             var document = dte.ActiveDocument;
 
@@ -78,7 +79,6 @@ namespace FindInViewModelExtension.Command
             // 打开并选中
             if (filePosition != null)
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 OpenFile(filePosition);
             }
             else
@@ -91,6 +91,7 @@ namespace FindInViewModelExtension.Command
 
         private FileSource[] FindFiles(string fromProjectName, string fileName)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
             if (dte == null)
             {
                 return [];
