@@ -1,6 +1,13 @@
-﻿namespace FindInViewModel.Model.Search
+﻿using System.Threading;
+
+namespace FindInViewModel.Model.Search
 {
-    internal class SearchContext(string fromProjectName, string targetFileName, string bindingText, FindFilesFunc findFilesFunc)
+    internal class SearchContext(
+        string fromProjectName,
+        string targetFileName,
+        string bindingText,
+        FindFilesAsyncFunc findFilesAsyncFunc,
+        CancellationToken cancellationToken)
     {
         public string FromProjectName { get; set; } = fromProjectName;
 
@@ -8,6 +15,8 @@
 
         public string BindingText { get; } = bindingText;
 
-        public FindFilesFunc FindFilesFunc { get; } = findFilesFunc;
+        public FindFilesAsyncFunc FindFilesAsyncFunc { get; } = findFilesAsyncFunc;
+
+        public CancellationToken CancellationToken { get; } = cancellationToken;
     }
 }

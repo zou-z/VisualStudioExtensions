@@ -1,9 +1,10 @@
 ﻿using FindInViewModel.Model.Search;
+using System.Threading.Tasks;
 
 namespace FindInViewModel.Component.Searcher
 {
     internal interface ISearcher
     {
-        SearchResult? Search(SearchContext context);
+        Task<SearchResult?> SearchAsync(SearchContext context);
     }
 }

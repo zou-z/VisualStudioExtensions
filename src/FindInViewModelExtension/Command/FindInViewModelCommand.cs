@@ -6,8 +6,8 @@ using Microsoft.VisualStudio.Extensibility;
 using Microsoft.VisualStudio.Extensibility.Commands;
 using Microsoft.VisualStudio.Extensibility.Shell;
 using Microsoft.VisualStudio.Extensibility.VSSdkCompatibility;
+using Microsoft.VisualStudio.ProjectSystem.Query;
 using Microsoft.VisualStudio.Shell;
-using System.IO;
 
 namespace FindInViewModelExtension.Command
 {
@@ -45,7 +45,7 @@ namespace FindInViewModelExtension.Command
         private async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            dte = await asyncServiceProviderInjection.GetServiceAsync();
+            var dte = await asyncServiceProviderInjection.GetServiceAsync();
             var document = dte.ActiveDocument;
 
             // 获取当前选中文本
@@ -74,95 +74,56 @@ namespace FindInViewModelExtension.Command
             selectedText = selectedText!.Split(Environment.NewLine.ToCharArray()).First();
             var bindings = AnalyzeServiceFactory.Create().GetBindings(selectedText!);
             var searchService = SearchServiceFactory.Create();
-            var filePosition = searchService.FindAsync(currentProjectName!, currentFileName!, bindings, FindFiles);
+            var filePosition = await searchService.FindAsync(
+                currentProjectName!,
+                currentFileName!,
+                bindings,
+                FindFilesAsync,
+                cancellationToken);
 
             // 打开并选中
             if (filePosition != null)
             {
-                OpenFile(filePosition);
+                OpenFile(dte, filePosition);
             }
             else
             {
                 throw new Exception("Not found");
             }
-
-            dte = null;
         }
 
-        private FileSource[] FindFiles(string fromProjectName, string fileName)
+        private async Task<FileSource[]> FindFilesAsync(
+            string fromProjectName,
+            string fileName,
+            CancellationToken cancellationToken)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-            if (dte == null)
+            var projects = await Extensibility.Workspaces().QueryProjectsAsync(
+                t => t.With(t => t.Name)
+                      .With(t => t.Files.Where(t => t.FileName == fileName)),
+                cancellationToken);
+
+            var fileSources = new List<FileSource>();
+            foreach (var project in projects)
             {
-                return [];
-            }
-
-            var list = new List<FileSource>();
-            do
-            {
-                var projects = dte.Solution?.Projects;
-                if (projects == null)
+                if (project.Files.Count > 0)
                 {
-                    break;
-                }
-
-                foreach (Project project in projects)
-                {
-                    var projectName = project?.Name;
-                    var projectFullName = project?.FullName;
-                    if (string.IsNullOrEmpty(projectName) || string.IsNullOrEmpty(projectFullName))
+                    var fileSource = new FileSource(project.Name, [.. project.Files.Select(t => t.Path)]);
+                    if (project.Name == fromProjectName)
                     {
-                        continue;
-                    }
-
-                    var projectPath = Path.GetDirectoryName(projectFullName);
-                    var filePaths = new List<string>();
-                    FindFilePaths(filePaths, projectPath, fileName, ["bin", "obj"]);
-                    if (filePaths.Count == 0)
-                    {
-                        continue;
-                    }
-
-                    var fileSource = new FileSource(projectName!, [.. filePaths]);
-                    if (projectName == fromProjectName)
-                    {
-                        list.Insert(0, fileSource);
+                        fileSources.Insert(0, fileSource);
                     }
                     else
                     {
-                        list.Add(fileSource);
+                        fileSources.Add(fileSource);
                     }
                 }
-            } while (false);
-            return [.. list];
+            }
+
+            return [.. fileSources];
         }
 
-        private void FindFilePaths(List<string> filePaths, string folderPath, string fileName, string[] ignoredFolders)
+        private void OpenFile(DTE2 dte, FilePosition filePosition)
         {
-            var directoryInfo = new DirectoryInfo(folderPath);
-            foreach (var directory in directoryInfo.GetDirectories())
-            {
-                if (!ignoredFolders.Contains(directory.Name))
-                {
-                    FindFilePaths(filePaths, directory.FullName, fileName, ignoredFolders);
-                }
-            }
-            foreach (var file in directoryInfo.GetFiles())
-            {
-                if (file.Name == fileName)
-                {
-                    filePaths.Add(file.FullName);
-                }
-            }
-        }
-
-        private void OpenFile(FilePosition filePosition)
-        {
-            if (dte == null)
-            {
-                return;
-            }
-
             ThreadHelper.ThrowIfNotOnUIThread();
             var window = dte.ItemOperations?.OpenFile(filePosition.FilePath, Constants.vsViewKindTextView);
             if (window != null)
@@ -192,6 +153,5 @@ namespace FindInViewModelExtension.Command
         private const ushort defaultPriority = 0x0600;
 
         private readonly AsyncServiceProviderInjection<DTE, DTE2> asyncServiceProviderInjection = asyncServiceProviderInjection;
-        private DTE2? dte = null;
     }
 }

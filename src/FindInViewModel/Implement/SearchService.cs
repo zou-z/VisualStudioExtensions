@@ -4,12 +4,19 @@ using FindInViewModel.Model;
 using FindInViewModel.Model.Search;
 using FindInViewModel.Service;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace FindInViewModel.Implement
 {
     internal class SearchService : ISearchService
     {
-        public FilePosition? FindAsync(string fromProjectName, string fromFileName, string[] bindings, FindFilesFunc findFilesFunc)
+        public async Task<FilePosition?> FindAsync(
+            string fromProjectName,
+            string fromFileName,
+            string[] bindings,
+            FindFilesAsyncFunc findFilesAsyncFunc,
+            CancellationToken cancellationToken)
         {
             bindings = TrimBindingsBehindCommandBinding(bindings);
 
@@ -20,8 +27,13 @@ namespace FindInViewModel.Implement
                 fromProjectName = result.FromProjectName;
                 do
                 {
-                    result = SearcherFactory.Create(bindings[i])
-                        .Search(new SearchContext(fromProjectName, targetFileName, bindings[i], findFilesFunc));
+                    result = await SearcherFactory.Create(bindings[i])
+                        .SearchAsync(new SearchContext(
+                            fromProjectName,
+                            targetFileName,
+                            bindings[i],
+                            findFilesAsyncFunc,
+                            cancellationToken));
                 }
                 while (result == null && ++i < bindings.Length);
             }

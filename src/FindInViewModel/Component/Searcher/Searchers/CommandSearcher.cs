@@ -2,17 +2,21 @@
 using FindInViewModel.Model.Search;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace FindInViewModel.Component.Searcher.Searchers
 {
     internal class CommandSearcher : ISearcher
     {
-        public SearchResult? Search(SearchContext context)
+        public async Task<SearchResult?> SearchAsync(SearchContext context)
         {
             var methodName = context.BindingText.GetBindingMethodName();
             var pattern = $"(void|Task|Task<.+>) ({methodName})\\(";
 
-            var fileSources = context.FindFilesFunc(context.FromProjectName, context.TargetFileName);
+            var fileSources = await context.FindFilesAsyncFunc(
+                context.FromProjectName,
+                context.TargetFileName,
+                context.CancellationToken);
             foreach (var fileSource in fileSources)
             {
                 foreach (var filePath in fileSource.FilePaths)

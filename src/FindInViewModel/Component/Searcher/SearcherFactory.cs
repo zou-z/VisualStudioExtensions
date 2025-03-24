@@ -11,10 +11,10 @@ namespace FindInViewModel.Component.Searcher
             {
                 return (commandSearcher ??= new CommandSearcher());
             }
-            return variableSearcher ??= new VariableSearcher();
+            return propertySearcher ??= new PropertySearcher();
         }
 
         private static ISearcher? commandSearcher = null;
-        private static ISearcher? variableSearcher = null;
+        private static ISearcher? propertySearcher = null;
     }
 }
