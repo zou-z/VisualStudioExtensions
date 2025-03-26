@@ -5,8 +5,12 @@
 # .vs
 /src/.vs
 
-# FindInViewModel
+# FindInViewModelExtension
 /src/FindInViewModel/bin
 /src/FindInViewModel/obj
 /src/FindInViewModelExtension/bin
 /src/FindInViewModelExtension/obj
+
+# GoToViewXamlExtension
+/src/GoToViewXamlExtension/bin
+/src/GoToViewXamlExtension/obj
