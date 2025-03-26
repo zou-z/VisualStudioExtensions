@@ -41,6 +41,23 @@ namespace FindInViewModel.Implement
             return result?.FilePosition;
         }
 
+        public async Task<FilePosition?> FindAsync(
+            string fromProjectName,
+            string fromFileName,
+            FindFilesAsyncFunc findFilesAsyncFunc,
+            CancellationToken cancellationToken)
+        {
+            var targetFileName = $"{fromFileName.GetViewModelName()}.cs";
+            var result = await SearcherFactory.Create(string.Empty)
+                .SearchAsync(new SearchContext(
+                    fromProjectName,
+                    targetFileName,
+                    string.Empty,
+                    findFilesAsyncFunc,
+                    cancellationToken));
+            return result?.FilePosition;
+        }
+
         private static string[] TrimBindingsBehindCommandBinding(string[] bindings)
         {
             int index = -1;

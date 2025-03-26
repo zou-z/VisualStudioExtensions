@@ -48,14 +48,6 @@ namespace FindInViewModelExtension.Command
             var dte = await asyncServiceProviderInjection.GetServiceAsync();
             var document = dte.ActiveDocument;
 
-            // 获取当前选中文本
-            var selection = document?.Selection as TextSelection;
-            var selectedText = selection?.Text?.Trim();
-            if (string.IsNullOrEmpty(selectedText))
-            {
-                throw new Exception("Please select the text first");
-            }
-
             // 获取当前项目名称
             var currentProjectName = document?.ProjectItem?.ContainingProject?.Name;
             if (string.IsNullOrEmpty(currentProjectName))
@@ -70,16 +62,33 @@ namespace FindInViewModelExtension.Command
                 throw new Exception("Get current file name failed");
             }
 
+            // 获取当前选中文本
+            var selection = document?.Selection as TextSelection;
+            var selectedText = selection?.Text?.Trim();
+
             // 查找文件位置
-            selectedText = selectedText!.Split(Environment.NewLine.ToCharArray()).First();
-            var bindings = AnalyzeServiceFactory.Create().GetBindings(selectedText!);
+            FilePosition? filePosition;
             var searchService = SearchServiceFactory.Create();
-            var filePosition = await searchService.FindAsync(
-                currentProjectName!,
-                currentFileName!,
-                bindings,
-                FindFilesAsync,
-                cancellationToken);
+            if (string.IsNullOrEmpty(selectedText))
+            {
+                filePosition = await searchService.FindAsync(
+                    currentProjectName!,
+                    currentFileName!,
+                    FindFilesAsync,
+                    cancellationToken);
+            }
+            else
+            {
+                selectedText = selectedText!.Split(Environment.NewLine.ToCharArray()).First();
+                var bindings = AnalyzeServiceFactory.Create().GetBindings(selectedText!);
+
+                filePosition = await searchService.FindAsync(
+                    currentProjectName!,
+                    currentFileName!,
+                    bindings,
+                    FindFilesAsync,
+                    cancellationToken);
+            }
 
             // 打开并选中
             if (filePosition != null)

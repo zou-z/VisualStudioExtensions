@@ -1,13 +1,15 @@
 ﻿using FindInViewModel.Model.Search;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace FindInViewModel.Component.Searcher.Searchers
 {
-    internal class PropertySearcher : SearcherBase
+    internal class ViewModelSearcher : SearcherBase
     {
         protected override void OnSearchStart(SearchContext context)
         {
-            var pattern = $"public (.*?) ({context.BindingText})";
+            var className = Path.GetFileNameWithoutExtension(context.TargetFileName);
+            var pattern = $"[class|record] ({className})";
             regex = new Regex(pattern);
         }
 
@@ -25,11 +27,10 @@ namespace FindInViewModel.Component.Searcher.Searchers
             var match = regex?.Match(originalText);
             if (match?.Success == true)
             {
-                string variableTypeName = match.Groups[1].Value;
-                int columnIndex = match.Groups[2].Index;
-                int columnLength = match.Groups[2].Length;
+                int columnIndex = match.Groups[1].Index;
+                int columnLength = match.Groups[1].Length;
                 var filePosition = new FilePosition(filePath, lineIndex, columnIndex, columnLength);
-                return new SearchResult(fromProjectName, variableTypeName, filePosition);
+                return new SearchResult(fromProjectName, string.Empty, filePosition);
             }
             return null;
         }

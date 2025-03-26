@@ -9,6 +9,8 @@ namespace FindInViewModel.Component.Searcher.Searchers
     {
         public async Task<SearchResult?> SearchAsync(SearchContext context)
         {
+            OnSearchStart(context);
+
             var fileSources = await context.FindFilesAsyncFunc(
                 context.FromProjectName,
                 context.TargetFileName,
@@ -22,11 +24,16 @@ namespace FindInViewModel.Component.Searcher.Searchers
                     var result = MatchFile(
                         fileSource.FromProjectName,
                         filePath,
-                        context.BindingText,
                         out string matchedText);
                     if (result != null)
                     {
+                        OnSearchEnd();
                         return result;
+                    }
+
+                    if (string.IsNullOrEmpty(context.BindingText))
+                    {
+                        continue;
                     }
 
                     // 查找基类文件
@@ -42,26 +49,30 @@ namespace FindInViewModel.Component.Searcher.Searchers
                             context.CancellationToken));
                         if (result != null)
                         {
+                            OnSearchEnd();
                             return result;
                         }
                     }
                 }
             }
 
+            OnSearchEnd();
             return null;
         }
+
+        protected virtual void OnSearchStart(SearchContext context) { }
+
+        protected virtual void OnSearchEnd() { }
 
         protected abstract SearchResult? MatchLine(
             string fromProjectName,
             string filePath,
             string originalText,
-            string bindingText,
             int lineIndex);
 
         private SearchResult? MatchFile(
             string fromProjectName,
             string filePath,
-            string bindingText,
             out string matchedText)
         {
             matchedText = string.Empty;
@@ -74,7 +85,6 @@ namespace FindInViewModel.Component.Searcher.Searchers
                     fromProjectName,
                     filePath,
                     enumerator.Current,
-                    bindingText,
                     lineIndex);
                 if (result != null)
                 {

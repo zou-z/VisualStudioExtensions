@@ -13,5 +13,11 @@ namespace FindInViewModel.Service
             string[] bindings,
             FindFilesAsyncFunc findFilesAsyncFunc,
             CancellationToken cancellationToken);
+
+        Task<FilePosition?> FindAsync(
+            string fromProjectName,
+            string fromFileName,
+            FindFilesAsyncFunc findFilesAsyncFunc,
+            CancellationToken cancellationToken);
     }
 }
