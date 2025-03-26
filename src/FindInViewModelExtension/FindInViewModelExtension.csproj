@@ -5,8 +5,9 @@
     <Nullable>enable</Nullable>
     <LangVersion>12</LangVersion>
     <UseWPF>true</UseWPF>
-
     <VssdkCompatibleExtension>true</VssdkCompatibleExtension>
+    <Authors>邹振华</Authors>
+    <RepositoryUrl>https://github.com/zou-z/VisualStudioExtensions</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
