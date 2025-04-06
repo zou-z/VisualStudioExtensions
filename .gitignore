@@ -14,3 +14,9 @@
 # GoToViewXamlExtension
 /src/GoToViewXamlExtension/bin
 /src/GoToViewXamlExtension/obj
+
+# ResxResourceExtension
+/src/ResxResource/bin
+/src/ResxResource/obj
+/src/ResxResourceExtension/bin
+/src/ResxResourceExtension/obj
