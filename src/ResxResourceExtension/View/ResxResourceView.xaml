@@ -26,7 +26,7 @@
 
     <b:Interaction.Triggers>
         <b:EventTrigger EventName="Loaded">
-            <b:InvokeCommandAction Command="{Binding LoadedCommand, Mode=OneTime}" />
+            <b:InvokeCommandAction x:Name="LoadedInvokeCommandAction" Command="{Binding LoadedCommand, Mode=OneTime}" />
         </b:EventTrigger>
     </b:Interaction.Triggers>
 
