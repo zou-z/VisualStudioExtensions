@@ -11,6 +11,7 @@ namespace ResxResourceExtension.ViewModel
         public ResxResourceListViewModel()
         {
             UpdateResourceCommand = new RelayCommand<ResourceModel>(UpdateResource);
+            FilterResourcesCommand = new RelayCommand(FilterResourcesAsynchronous);
             UpdateSelectedCountCommand = new RelayCommand(UpdateSelectedCount);
             SelectAllCommand = new RelayCommand(SelectAll);
             ClearSelectedCommand = new RelayCommand(ClearSelected);
@@ -18,12 +19,12 @@ namespace ResxResourceExtension.ViewModel
             CopyToClipboardCommand = new RelayCommand(CopyToClipboard);
         }
 
-        public bool IsResourcesLoaded
+        public bool IsLoadingResources
         {
-            get => isResourcesLoaded;
+            get => isLoadingResources;
             set
             {
-                isResourcesLoaded = value;
+                SetProperty(ref isLoadingResources, value);
                 _ = resourceImport?.UpdateImportExecutableAsync();
             }
         }
@@ -43,14 +44,12 @@ namespace ResxResourceExtension.ViewModel
         public string SearchText
         {
             get => searchText;
-            set
-            {
-                SetProperty(ref searchText, value);
-                OnSearchTextChanged();
-            }
+            set => SetProperty(ref searchText, value);
         }
 
         public RelayCommand<ResourceModel> UpdateResourceCommand { get; }
+
+        public RelayCommand FilterResourcesCommand { get; }
 
         public RelayCommand UpdateSelectedCountCommand { get; }
 
@@ -88,28 +87,40 @@ namespace ResxResourceExtension.ViewModel
             list.AddRange(allResources);
             list.AddRange(resources);
             allResources = [.. list];
-            OnSearchTextChanged();
+            FilterResourcesAsynchronous();
         }
 
         public void LoadResources(string[] resourceFiles)
         {
-            IsResourcesLoaded = false;
-
-            this.resourceFiles = resourceFiles;
-            allResources = [.. ResourceReader.Read(resourceFiles, out modifier)
+            IsLoadingResources = true;
+            _ = Task.Run(() =>
+            {
+                this.resourceFiles = resourceFiles;
+                allResources = [.. ResourceReader.Read(resourceFiles, out modifier)
                 .Select(t => new ResourceModel(t.Key, t.NeutralText, t.EnglishText))];
-            OnSearchTextChanged();
+                FilterResources();
 
-            IsResourcesLoaded = true;
+                IsLoadingResources = false;
+            });
         }
 
-        private void OnSearchTextChanged()
+        private void FilterResources()
         {
             Resources = [.. allResources.Where(
                 t => t.Key.Contains(SearchText) ||
                      t.NeutralText.Contains(SearchText)||
                      t.EnglishText.Contains(SearchText))];
             UpdateSelectedCount();
+        }
+
+        private void FilterResourcesAsynchronous()
+        {
+            IsLoadingResources = true;
+            _ = Task.Run(() =>
+            {
+                FilterResources();
+                IsLoadingResources = false;
+            });
         }
 
         private void UpdateResource(ResourceModel? resource)
@@ -160,7 +171,7 @@ namespace ResxResourceExtension.ViewModel
         private List<ResourceModel> resources = [];
         private int selectedCount = 0;
         private string searchText = string.Empty;
-        private bool isResourcesLoaded = false;
+        private bool isLoadingResources = false;
         private ResourceModel[] allResources = [];
         private string[] resourceFiles = [];
         private string modifier = string.Empty;

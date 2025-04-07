@@ -6,14 +6,9 @@ namespace ResxResourceExtension.ViewModel
 {
     internal class ResxResourceViewModel : ObservableObject
     {
-        public ResxResourceViewModel(
-            string activeProjectName,
-            Func<CancellationToken, Task<ProjectModel[]>> getProjectResourcesAsyncFunc,
-            CancellationToken cancellationToken)
+        public ResxResourceViewModel(Func<Task<SolutionModel>> getSolutionDataAsyncFunc)
         {
-            this.activeProjectName = activeProjectName;
-            this.getProjectResourcesAsyncFunc = getProjectResourcesAsyncFunc;
-            this.cancellationToken = cancellationToken;
+            this.getSolutionDataAsyncFunc = getSolutionDataAsyncFunc;
 
             ListViewModel = new ResxResourceListViewModel();
             ImportViewModel = new ResxResourceImportViewModel(() => IsShowImportView = false);
@@ -58,8 +53,9 @@ namespace ResxResourceExtension.ViewModel
         {
             _ = Task.Run(async () =>
             {
-                Projects = await getProjectResourcesAsyncFunc(cancellationToken);
-                SelectedProject = Projects.FirstOrDefault(t => t.Name == activeProjectName);
+                var solution = await getSolutionDataAsyncFunc();
+                Projects = solution.Projects;
+                SelectedProject = Projects.FirstOrDefault(t => t.Name == solution.ActiveProjectName);
             });
         }
 
@@ -68,9 +64,7 @@ namespace ResxResourceExtension.ViewModel
             ListViewModel.LoadResources(SelectedProject?.ResourceFiles ?? []);
         }
 
-        private readonly Func<CancellationToken, Task<ProjectModel[]>> getProjectResourcesAsyncFunc;
-        private readonly CancellationToken cancellationToken;
-        private readonly string activeProjectName;
+        private readonly Func<Task<SolutionModel>> getSolutionDataAsyncFunc;
         private ProjectModel[] projects = [];
         private ProjectModel? selectedProject = null;
         private bool isShowImportView = false;

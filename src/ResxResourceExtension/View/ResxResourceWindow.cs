@@ -9,18 +9,12 @@ namespace ResxResourceExtension.View
         {
         }
 
-        public static void ShowWindow(
-            string activeProjectName,
-            Func<CancellationToken, Task<ProjectModel[]>> getProjectResourcesAsyncFunc,
-            CancellationToken cancellationToken)
+        public static void ShowWindow(Func<Task<SolutionModel>> getSolutionDataAsyncFunc)
         {
-            var viewModel = new ResxResourceViewModel(
-                activeProjectName,
-                getProjectResourcesAsyncFunc,
-                cancellationToken);
+            var viewModel = new ResxResourceViewModel(getSolutionDataAsyncFunc);
             var window = Create("Resx Resource", 432, 680);
             window.Content = new ResxResourceView { DataContext = viewModel };
-            window.Show();
+            window.ShowDialog();
         }
     }
 }

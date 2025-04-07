@@ -19,8 +19,6 @@
                 <ResourceDictionary Source="/ResxResourceExtension;component/Style/ComboBox.xaml" />
                 <ResourceDictionary Source="/ResxResourceExtension;component/Style/Button.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <local:TrueToVisibleConverter x:Key="TrueToVisibleConverter" />
-            <local:FalseToVisibleConverter x:Key="FalseToVisibleConverter" />
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -43,6 +41,7 @@
             <ComboBox
                 Grid.Column="0"
                 DisplayMemberPath="Name"
+                IsEnabled="{Binding ListViewModel.IsLoadingResources, Converter={StaticResource BoolReverseConverter}}"
                 ItemsSource="{Binding Projects, Mode=OneWay}"
                 SelectedItem="{Binding SelectedProject, Mode=TwoWay}" />
             <Button

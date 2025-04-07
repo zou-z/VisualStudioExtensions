@@ -1,6 +1,7 @@
 ﻿<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converter="clr-namespace:ResxResourceExtension.Converter"
     xmlns:system="clr-namespace:System;assembly=mscorlib">
 
     <CornerRadius x:Key="DefaultCornerRadius">5</CornerRadius>
@@ -19,4 +20,7 @@
     <SolidColorBrush x:Key="DefaultSelectedBackgroundBrush" Color="#4D4D4D" />
     <SolidColorBrush x:Key="DefaultControlBackgroundBrush" Color="#282828" />
 
+    <converter:BoolReverseConverter x:Key="BoolReverseConverter" />
+    <converter:TrueToVisibleConverter x:Key="TrueToVisibleConverter" />
+    <converter:FalseToVisibleConverter x:Key="FalseToVisibleConverter" />
 </ResourceDictionary>

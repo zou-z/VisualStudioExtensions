@@ -43,35 +43,30 @@ namespace ResxResourceExtension.Command
 
         private async Task ExecuteAsync(IClientContext context, CancellationToken cancellationToken)
         {
-            var activeProject = await context.GetActiveProjectAsync(t => t.With(t => t.Name), cancellationToken);
-            var activeProjectName = activeProject?.Name;
-            if (string.IsNullOrEmpty(activeProjectName))
-            {
-                throw new Exception("Get active project failed");
-            }
-
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            ResxResourceWindow.ShowWindow(
-                activeProjectName!,
-                GetProjectResourcesAsync,
-                cancellationToken);
-        }
-
-        private async Task<ProjectModel[]> GetProjectResourcesAsync(CancellationToken cancellationToken)
-        {
-            var result = await Extensibility.Workspaces().QueryProjectsAsync(
-                t => t.With(t => t.Name)
-                    .With(t => t.Files.Where(t => t.FileName.EndsWith(".resx") || t.FileName.EndsWith(".Designer.cs")))
-                , cancellationToken);
-
-            if (result != null)
+            ResxResourceWindow.ShowWindow(async () =>
             {
-                var findResult = result.Where(t => t.Files.Count > 0).ToList();
-                var projects = findResult.Select(t => new ProjectModel(t.Name, [.. t.Files.Select(t => t.Path)])).ToList();
-                projects.Sort();
-                return [.. projects];
-            }
-            return [];
+                var activeProject = await context.GetActiveProjectAsync(t => t.With(t => t.Name), cancellationToken);
+                var activeProjectName = activeProject?.Name;
+                if (string.IsNullOrEmpty(activeProjectName))
+                {
+                    await Extensibility.Shell().ShowPromptAsync("Get active project failed", PromptOptions.OK, cancellationToken);
+                }
+
+                var result = await Extensibility.Workspaces().QueryProjectsAsync(
+                    t => t.With(t => t.Name)
+                        .With(t => t.Files.Where(t => t.FileName.EndsWith(".resx") || t.FileName.EndsWith(".Designer.cs")))
+                    , cancellationToken);
+
+                if (result != null)
+                {
+                    var findResult = result.Where(t => t.Files.Count > 0).ToList();
+                    var projects = findResult.Select(t => new ProjectModel(t.Name, [.. t.Files.Select(t => t.Path)])).ToList();
+                    projects.Sort();
+                    return new SolutionModel(activeProjectName ?? string.Empty, [.. projects]);
+                }
+                return new SolutionModel(activeProjectName ?? string.Empty, []);
+            });
         }
 
         private const string guidSHLMainMenu = "d309f791-903f-11d0-9efc-00a0c911004f";

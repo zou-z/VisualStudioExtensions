@@ -10,12 +10,6 @@ namespace ResxResourceExtension.View
         public ResxResourceListView()
         {
             InitializeComponent();
-            Loaded += ResxResourceListView_Loaded;
-        }
-
-        private void ResxResourceListView_Loaded(object sender, RoutedEventArgs e)
-        {
-            textBox.Focus();
         }
 
         private void TextBox_KeyDown(object sender, KeyEventArgs e)

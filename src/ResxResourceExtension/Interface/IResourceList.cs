@@ -4,7 +4,7 @@ namespace ResxResourceExtension.Interface
 {
     internal interface IResourceList
     {
-        bool IsResourcesLoaded { get; set; }
+        bool IsLoadingResources { get; set; }
 
         ResourceModel[] GetExistedResources();
 

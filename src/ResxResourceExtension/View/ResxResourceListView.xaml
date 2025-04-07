@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:behavior="clr-namespace:ResxResourceExtension.Behavior"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:ResxResourceExtension.View"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -23,18 +24,22 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid Grid.Row="1">
+    <Grid Grid.Row="1" IsEnabled="{Binding IsLoadingResources, Converter={StaticResource BoolReverseConverter}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <TextBox
-            x:Name="textBox"
             Grid.Row="0"
             Margin="12,0,12,0"
             Style="{StaticResource SearchTextBoxStyle}"
-            Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+            <b:Interaction.Behaviors>
+                <behavior:TextBoxEnterCommandBehavior Command="{Binding FilterResourcesCommand, Mode=OneTime}" />
+                <behavior:TextBoxAutoFocusBehavior />
+            </b:Interaction.Behaviors>
+        </TextBox>
 
         <ListBox
             Grid.Row="1"
@@ -111,10 +116,22 @@
             </ListBox.ContextMenu>
         </ListBox>
 
-        <Border Grid.Row="2">
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock
+                Margin="12,0,0,0"
+                VerticalAlignment="Center"
+                Foreground="White"
+                Text="Loading..."
+                TextTrimming="CharacterEllipsis"
+                Visibility="{Binding IsLoadingResources, Converter={StaticResource TrueToVisibleConverter}}" />
+
             <StackPanel
+                Grid.Column="1"
                 Height="24"
-                HorizontalAlignment="Right"
                 Orientation="Horizontal">
                 <TextBlock
                     Grid.Column="0"
@@ -126,6 +143,6 @@
                     <Run Text="{Binding Resources.Count, Mode=OneWay}" /><Run Text=" items" />
                 </TextBlock>
             </StackPanel>
-        </Border>
+        </Grid>
     </Grid>
 </UserControl>
