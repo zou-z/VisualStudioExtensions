@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace ResxResource.Rule
+﻿namespace ResxResource.Rule
 {
     internal static class ResourceNameRule
     {
@@ -11,7 +9,7 @@ namespace ResxResource.Rule
 
         public static bool IsNeutralResourceFile(string fileName)
         {
-            return fileName.EndsWith("zh-CN.resx") || Path.GetFileName(fileName) == "Resources.resx";
+            return !IsResourceDesignerFile(fileName) && !IsEnglishResourceFile(fileName);
         }
 
         public static bool IsEnglishResourceFile(string fileName)

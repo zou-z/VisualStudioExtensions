@@ -41,7 +41,7 @@
             <ComboBox
                 Grid.Column="0"
                 DisplayMemberPath="Name"
-                IsEnabled="{Binding ListViewModel.IsLoadingResources, Converter={StaticResource BoolReverseConverter}}"
+                IsEnabled="{Binding ListViewModel.IsLoading, Converter={StaticResource BoolReverseConverter}}"
                 ItemsSource="{Binding Projects, Mode=OneWay}"
                 SelectedItem="{Binding SelectedProject, Mode=TwoWay}" />
             <Button

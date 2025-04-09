@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using ResxResource.Resource;
 using ResxResourceExtension.Interface;
 using ResxResourceExtension.Model;
+using System.Windows;
 
 namespace ResxResourceExtension.ViewModel
 {
@@ -19,12 +20,12 @@ namespace ResxResourceExtension.ViewModel
             CopyToClipboardCommand = new RelayCommand(CopyToClipboard);
         }
 
-        public bool IsLoadingResources
+        public bool IsLoading
         {
-            get => isLoadingResources;
+            get => isLoading;
             set
             {
-                SetProperty(ref isLoadingResources, value);
+                SetProperty(ref isLoading, value);
                 _ = resourceImport?.UpdateImportExecutableAsync();
             }
         }
@@ -92,7 +93,7 @@ namespace ResxResourceExtension.ViewModel
 
         public void LoadResources(string[] resourceFiles)
         {
-            IsLoadingResources = true;
+            IsLoading = true;
             _ = Task.Run(() =>
             {
                 this.resourceFiles = resourceFiles;
@@ -100,7 +101,7 @@ namespace ResxResourceExtension.ViewModel
                 .Select(t => new ResourceModel(t.Key, t.NeutralText, t.EnglishText))];
                 FilterResources();
 
-                IsLoadingResources = false;
+                IsLoading = false;
             });
         }
 
@@ -115,11 +116,11 @@ namespace ResxResourceExtension.ViewModel
 
         private void FilterResourcesAsynchronous()
         {
-            IsLoadingResources = true;
+            IsLoading = true;
             _ = Task.Run(() =>
             {
                 FilterResources();
-                IsLoadingResources = false;
+                IsLoading = false;
             });
         }
 
@@ -159,19 +160,63 @@ namespace ResxResourceExtension.ViewModel
 
         private void DeleteSelected()
         {
-            // TODO
+            IsLoading = true;
+            _ = Task.Run(() =>
+            {
+                var message = string.Empty;
+                var resourceKeys = Resources.Where(t => t.IsSelected).Select(t => t.Key).ToArray();
+                if (resourceKeys.Length == 0)
+                {
+                    message = "No resource selected";
+                }
+                else
+                {
+                    var result = ResourceDeleter.Delete(resourceFiles, resourceKeys);
+                    if (result)
+                    {
+                        var list = new List<ResourceModel>(allResources.Length - resourceKeys.Length);
+                        list.AddRange(allResources.Where(t => !resourceKeys.Contains(t.Key)));
+                        allResources = [.. list];
+                        FilterResources();
+                    }
+                    message = $"Delete resources {(result ? "completed" : "failed")}";
+                }
+
+                IsLoading = false;
+                MessageBox.Show(message, "Delete Selected");
+            });
         }
 
         private void CopyToClipboard()
         {
-            // TODO
+            var message = string.Empty;
+            var selectedResources = Resources.Where(t => t.IsSelected);
+            if (selectedResources.Count() == 0)
+            {
+                message = "No resource selected";
+            }
+            else
+            {
+                var resourceTexts = selectedResources.Select(t => string.Join(Environment.NewLine, t.Key, t.NeutralText, t.EnglishText));
+                var text = string.Join(Environment.NewLine, resourceTexts);
+                try
+                {
+                    Clipboard.SetText(text);
+                    message = "Copy completed";
+                }
+                catch (Exception ex)
+                {
+                    message = $"Copy failed, {ex.Message}";
+                }
+            }
+            MessageBox.Show(message, "Copy To Clipboard");
         }
 
         private IResourceImport? resourceImport = null;
         private List<ResourceModel> resources = [];
         private int selectedCount = 0;
         private string searchText = string.Empty;
-        private bool isLoadingResources = false;
+        private bool isLoading = false;
         private ResourceModel[] allResources = [];
         private string[] resourceFiles = [];
         private string modifier = string.Empty;

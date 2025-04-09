@@ -13,7 +13,7 @@ namespace ResxResourceExtension.ViewModel
         public ResxResourceImportViewModel(Action hideImportViewAction)
         {
             this.hideImportViewAction = hideImportViewAction;
-            ImportCommand = new RelayCommand(Import, () => resourceList != null && !resourceList.IsLoadingResources);
+            ImportCommand = new RelayCommand(Import, () => resourceList != null && !resourceList.IsLoading);
         }
 
         public string Text

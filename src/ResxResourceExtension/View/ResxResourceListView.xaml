@@ -24,7 +24,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid Grid.Row="1" IsEnabled="{Binding IsLoadingResources, Converter={StaticResource BoolReverseConverter}}">
+    <Grid Grid.Row="1" IsEnabled="{Binding IsLoading, Converter={StaticResource BoolReverseConverter}}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -127,7 +127,7 @@
                 Foreground="White"
                 Text="Loading..."
                 TextTrimming="CharacterEllipsis"
-                Visibility="{Binding IsLoadingResources, Converter={StaticResource TrueToVisibleConverter}}" />
+                Visibility="{Binding IsLoading, Converter={StaticResource TrueToVisibleConverter}}" />
 
             <StackPanel
                 Grid.Column="1"
