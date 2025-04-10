@@ -121,13 +121,19 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBlock
+            <StackPanel
                 Margin="12,0,0,0"
                 VerticalAlignment="Center"
-                Foreground="White"
-                Text="Loading..."
-                TextTrimming="CharacterEllipsis"
-                Visibility="{Binding IsLoading, Converter={StaticResource TrueToVisibleConverter}}" />
+                Orientation="Horizontal">
+                <TextBlock
+                    Margin="0,0,10,0"
+                    VerticalAlignment="Center"
+                    Foreground="White"
+                    Text="Loading..."
+                    TextTrimming="CharacterEllipsis"
+                    Visibility="{Binding IsLoading, Converter={StaticResource TrueToVisibleConverter}}" />
+                <local:TextNotificationView DataContext="{Binding TextNotification, Mode=OneTime}" />
+            </StackPanel>
 
             <StackPanel
                 Grid.Column="1"

@@ -11,6 +11,7 @@ namespace ResxResourceExtension.ViewModel
     {
         public ResxResourceListViewModel()
         {
+            TextNotification = new TextNotificationViewModel();
             UpdateResourceCommand = new RelayCommand<ResourceModel>(UpdateResource);
             FilterResourcesCommand = new RelayCommand(FilterResourcesAsynchronous);
             UpdateSelectedCountCommand = new RelayCommand(UpdateSelectedCount);
@@ -47,6 +48,8 @@ namespace ResxResourceExtension.ViewModel
             get => searchText;
             set => SetProperty(ref searchText, value);
         }
+
+        public TextNotificationViewModel TextNotification { get; }
 
         public RelayCommand<ResourceModel> UpdateResourceCommand { get; }
 
@@ -163,11 +166,10 @@ namespace ResxResourceExtension.ViewModel
             IsLoading = true;
             _ = Task.Run(() =>
             {
-                var message = string.Empty;
                 var resourceKeys = Resources.Where(t => t.IsSelected).Select(t => t.Key).ToArray();
                 if (resourceKeys.Length == 0)
                 {
-                    message = "No resource selected";
+                    TextNotification.Show("No resource selected", TextNotificationViewModel.Severity.Informational);
                 }
                 else
                 {
@@ -179,21 +181,22 @@ namespace ResxResourceExtension.ViewModel
                         allResources = [.. list];
                         FilterResources();
                     }
-                    message = $"Delete resources {(result ? "completed" : "failed")}";
+                    
+                    var message = $"Delete resources {(result ? "completed" : "failed")}";
+                    var severity = result ? TextNotificationViewModel.Severity.Informational : TextNotificationViewModel.Severity.Error;
+                    TextNotification.Show(message, severity);
                 }
 
                 IsLoading = false;
-                MessageBox.Show(message, "Delete Selected");
             });
         }
 
         private void CopyToClipboard()
         {
-            var message = string.Empty;
             var selectedResources = Resources.Where(t => t.IsSelected);
             if (selectedResources.Count() == 0)
             {
-                message = "No resource selected";
+                TextNotification.Show("No resource selected", TextNotificationViewModel.Severity.Informational);
             }
             else
             {
@@ -202,14 +205,13 @@ namespace ResxResourceExtension.ViewModel
                 try
                 {
                     Clipboard.SetText(text);
-                    message = "Copy completed";
+                    TextNotification.Show("Copy completed", TextNotificationViewModel.Severity.Informational);
                 }
                 catch (Exception ex)
                 {
-                    message = $"Copy failed, {ex.Message}";
+                    TextNotification.Show($"Copy failed, {ex.Message}", TextNotificationViewModel.Severity.Error);
                 }
             }
-            MessageBox.Show(message, "Copy To Clipboard");
         }
 
         private IResourceImport? resourceImport = null;
