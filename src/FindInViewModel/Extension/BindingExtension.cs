@@ -16,7 +16,9 @@ namespace FindInViewModel.Extension
 
         public static string GetViewModelName(this string viewFileName)
         {
-            return $"{Path.GetFileNameWithoutExtension(viewFileName)}{viewModelText}";
+            var name = Path.GetFileNameWithoutExtension(viewFileName);
+            name = name.EndsWith("View") ? name.Substring(0, name.Length - 4) : name;
+            return $"{name}{viewModelText}";
         }
 
         private readonly static string commandText = "Command";

@@ -39,16 +39,13 @@ namespace GoToViewXamlExtension.Command
                     throw new Exception("Current file is not a ViewModel file");
                 }
 
-                var viewFileName = $"{fileName[..^viewModelFileTail.Length]}.xaml";
-                var result = await Extensibility.Workspaces().QueryProjectsAsync(
-                    t => t.With(t => t.Name).With(t => t.Files.Where(t => t.FileName == viewFileName)),
-                    cancellationToken);
-                var projects = result.Where(t => t.Files.Count > 0);
+                var name = fileName[..^viewModelFileTail.Length];
+                var viewFileNames = new[] { $"{name}.xaml", $"{name}View.xaml" };
 
-                var viewFilePath = projects.Where(t => t.Name == project.Name).FirstOrDefault()?.Files.FirstOrDefault()?.Path;
-                if (string.IsNullOrEmpty(viewFilePath))
+                string? viewFilePath = null;
+                for (int i = 0; i < viewFileNames.Length && string.IsNullOrEmpty(viewFilePath); ++i)
                 {
-                    viewFilePath = projects.FirstOrDefault()?.Files.FirstOrDefault()?.Path;
+                    viewFilePath = await GetFilePathAsync(viewFileNames[i], project.Name, cancellationToken);
                 }
 
                 if (string.IsNullOrEmpty(viewFilePath))
@@ -61,6 +58,21 @@ namespace GoToViewXamlExtension.Command
             {
                 await Extensibility.Shell().ShowPromptAsync(ex.Message, PromptOptions.OK, cancellationToken);
             }
+        }
+
+        private async Task<string?> GetFilePathAsync(string fileName, string projectName, CancellationToken cancellationToken)
+        {
+            var result = await Extensibility.Workspaces().QueryProjectsAsync(
+                   t => t.With(t => t.Name).With(t => t.Files.Where(t => t.FileName == fileName)),
+                   cancellationToken);
+            var projects = result.Where(t => t.Files.Count > 0);
+
+            var filePath = projects.Where(t => t.Name == projectName).FirstOrDefault()?.Files.FirstOrDefault()?.Path;
+            if (string.IsNullOrEmpty(filePath))
+            {
+                filePath = projects.FirstOrDefault()?.Files.FirstOrDefault()?.Path;
+            }
+            return filePath;
         }
 
         private const string guidSHLMainMenu = "d309f791-903f-11d0-9efc-00a0c911004f";
