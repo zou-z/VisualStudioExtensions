@@ -1,8 +1,10 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Microsoft.VisualStudio.Extensibility.UI;
+using System.Runtime.Serialization;
 
 namespace ResxResourceExtension.Model
 {
-    internal class ResourceModel : ObservableObject
+    [DataContract]
+    internal class ResourceModel : NotifyPropertyChangedObject
     {
         public ResourceModel(string key, string neutralText, string englishText)
         {
@@ -11,11 +13,60 @@ namespace ResxResourceExtension.Model
             EnglishText = LastEnglishText = englishText;
         }
 
-        public string Key { get; set; }
+        [DataMember]
+        public bool IsSelected
+        {
+            get => isSelected;
+            set => SetProperty(ref isSelected, value);
+        }
 
-        public string NeutralText { get; set; }
+        [DataMember]
+        public string Key
+        {
+            get => key;
+            set
+            {
+                if (SetProperty(ref key, value))
+                {
+                    RaiseNotifyPropertyChangedEvent(nameof(IsKeyModified));
+                }
+            }
+        }
 
-        public string EnglishText { get; set; }
+        [DataMember]
+        public string NeutralText
+        {
+            get => neutralText;
+            set
+            {
+                if (SetProperty(ref neutralText, value))
+                {
+                    RaiseNotifyPropertyChangedEvent(nameof(IsNeutralTextModified));
+                }
+            }
+        }
+
+        [DataMember]
+        public string EnglishText
+        {
+            get => englishText;
+            set
+            {
+                if (SetProperty(ref englishText, value))
+                {
+                    RaiseNotifyPropertyChangedEvent(nameof(IsEnglishTextModified));
+                }
+            }
+        }
+
+        [DataMember]
+        public bool IsKeyModified => LastKey != Key;
+
+        [DataMember]
+        public bool IsNeutralTextModified => LastNeutralText != NeutralText;
+
+        [DataMember]
+        public bool IsEnglishTextModified => LastEnglishText != EnglishText;
 
         public string LastKey { get; private set; }
 
@@ -23,25 +74,19 @@ namespace ResxResourceExtension.Model
 
         public string LastEnglishText { get; private set; }
 
-        public bool IsSelected
-        {
-            get => isSelected;
-            set => SetProperty(ref isSelected, value);
-        }
-
-        public bool IsKeyModified => LastKey != Key;
-
-        public bool IsNeutralTextModified => LastNeutralText != NeutralText;
-
-        public bool IsEnglishTextModified => LastEnglishText != EnglishText;
-
-        public void ResetModify()
+        public void ResetModifyStatus()
         {
             LastKey = Key;
             LastNeutralText = NeutralText;
             LastEnglishText = EnglishText;
+            RaiseNotifyPropertyChangedEvent(nameof(IsKeyModified));
+            RaiseNotifyPropertyChangedEvent(nameof(IsNeutralTextModified));
+            RaiseNotifyPropertyChangedEvent(nameof(IsEnglishTextModified));
         }
 
         private bool isSelected = false;
+        private string key = string.Empty;
+        private string neutralText = string.Empty;
+        private string englishText = string.Empty;
     }
 }

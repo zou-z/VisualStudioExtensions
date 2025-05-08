@@ -12,9 +12,14 @@
 
     <RepositoryUrl>https://github.com/zou-z/VisualStudioExtensions</RepositoryUrl>
   </PropertyGroup>
+  <ItemGroup>
+    <Page Remove="View\ResxResourceWindowContent.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="View\ResxResourceWindowContent.xaml" />
+  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="17.13.40008" />
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.Build" Version="17.13.40008" />
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.13.40008" ExcludeAssets="runtime" />

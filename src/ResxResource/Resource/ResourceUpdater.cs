@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Web;
 
 namespace ResxResource.Resource
 {
     public static class ResourceUpdater
     {
-        public static void UpdateResourceDesignerKey(string[] resourceFiles, string originalKey, string newKey)
+        public static void UpdateKey(string[] resourceFiles, string oldKey, string newKey)
         {
             var resourceDesignerFile = resourceFiles.FirstOrDefault(ResourceNameRule.IsResourceDesignerFile);
             var neutralResourceFiles = resourceFiles.Where(ResourceNameRule.IsNeutralResourceFile);
@@ -16,32 +15,32 @@ namespace ResxResource.Resource
 
             if (!string.IsNullOrEmpty(resourceDesignerFile))
             {
-                UpdateResourceDesignerKey(resourceDesignerFile, originalKey, newKey);
+                UpdateResourceDesignerKey(resourceDesignerFile, oldKey, newKey);
             }
             if (neutralResourceFiles != null)
             {
                 foreach (var neutralResourceFile in neutralResourceFiles)
                 {
-                    UpdateResourceKey(neutralResourceFile, originalKey, newKey);
+                    UpdateResourceKey(neutralResourceFile, oldKey, newKey);
                 }
             }
             if (!string.IsNullOrEmpty(englishResourceFile))
             {
-                UpdateResourceKey(englishResourceFile, originalKey, newKey);
+                UpdateResourceKey(englishResourceFile, oldKey, newKey);
             }
         }
 
-        public static void UpdateNeutralResourceValue(string[] resourceFiles, string key, string originalValue, string newValue)
+        public static void UpdateNeutralText(string[] resourceFiles, string key, string oldNeutralText, string newNeutralText)
         {
-            var encodedOriginalValue = HttpUtility.HtmlEncode(originalValue);
-            var encodedNewValue = HttpUtility.HtmlEncode(newValue);
+            var encodedOriginalValue = XmlEncode(oldNeutralText);
+            var encodedNewValue = XmlEncode(newNeutralText);
 
             var resourceDesignerFile = resourceFiles.FirstOrDefault(ResourceNameRule.IsResourceDesignerFile);
             var neutralResourceFiles = resourceFiles.Where(ResourceNameRule.IsNeutralResourceFile);
 
             if (!string.IsNullOrEmpty(resourceDesignerFile))
             {
-                UpdateResourceDesignerSummary(resourceDesignerFile, originalValue, newValue);
+                UpdateResourceDesignerSummary(resourceDesignerFile, oldNeutralText, newNeutralText);
             }
             if (neutralResourceFiles != null)
             {
@@ -52,10 +51,10 @@ namespace ResxResource.Resource
             }
         }
 
-        public static void UpdateEnglishResourceValue(string[] resourceFiles, string key, string originalValue, string newValue)
+        public static void UpdateEnglishText(string[] resourceFiles, string key, string oldEnglishText, string newEnglishText)
         {
-            var encodedOriginalValue = HttpUtility.HtmlEncode(originalValue);
-            var encodedNewValue = HttpUtility.HtmlEncode(newValue);
+            var encodedOriginalValue = XmlEncode(oldEnglishText);
+            var encodedNewValue = XmlEncode(newEnglishText);
 
             var englishResourceFile = resourceFiles.FirstOrDefault(ResourceNameRule.IsEnglishResourceFile);
             if (!string.IsNullOrEmpty(englishResourceFile))
@@ -64,46 +63,46 @@ namespace ResxResource.Resource
             }
         }
 
-        private static void UpdateResourceDesignerSummary(string filePath, string originalSummary, string newSummary)
+        private static void UpdateResourceDesignerSummary(string filePath, string oldSummary, string newSummary)
         {
-            originalSummary = $"查找类似 {originalSummary} 的本地化字符串";
+            oldSummary = $"查找类似 {oldSummary} 的本地化字符串";
             newSummary = $"查找类似 {newSummary} 的本地化字符串";
-            ReplaceContent(filePath, originalSummary, newSummary);
+            ReplaceContent(filePath, oldSummary, newSummary);
         }
 
-        private static void UpdateResourceDesignerKey(string filePath, string originalKey, string newKey)
+        private static void UpdateResourceDesignerKey(string filePath, string oldKey, string newKey)
         {
             var replaceDictionary = new Dictionary<string, string>()
             {
                 {
-                    $"static string {originalKey} {{",
+                    $"static string {oldKey} {{",
                     $"static string {newKey} {{"
                 },
                 {
-                    $"return ResourceManager.GetString(\"{originalKey}\", resourceCulture);",
+                    $"return ResourceManager.GetString(\"{oldKey}\", resourceCulture);",
                     $"return ResourceManager.GetString(\"{newKey}\", resourceCulture);"
                 }
             };
             ReplaceContents(filePath, replaceDictionary);
         }
 
-        private static void UpdateResourceKey(string filePath, string originalKey, string newKey)
+        private static void UpdateResourceKey(string filePath, string oldKey, string newKey)
         {
-            originalKey = $"<data name=\"{originalKey}\" xml:space=\"preserve\">";
+            oldKey = $"<data name=\"{oldKey}\" xml:space=\"preserve\">";
             newKey = $"<data name=\"{newKey}\" xml:space=\"preserve\">";
-            ReplaceContent(filePath, originalKey, newKey);
+            ReplaceContent(filePath, oldKey, newKey);
         }
 
-        private static void UpdateResourceValue(string filePath, string key, string originalValue, string newValue)
+        private static void UpdateResourceValue(string filePath, string key, string oldValue, string newValue)
         {
-            originalValue = $"<data name=\"{key}\" xml:space=\"preserve\">\r\n    <value>{originalValue}</value>\r\n  </data>";
+            oldValue = $"<data name=\"{key}\" xml:space=\"preserve\">\r\n    <value>{oldValue}</value>\r\n  </data>";
             newValue = $"<data name=\"{key}\" xml:space=\"preserve\">\r\n    <value>{newValue}</value>\r\n  </data>";
-            ReplaceContent(filePath, originalValue, newValue);
+            ReplaceContent(filePath, oldValue, newValue);
         }
 
-        private static void ReplaceContent(string filePath, string originalContent, string newContent)
+        private static void ReplaceContent(string filePath, string oldContent, string newContent)
         {
-            var text = File.ReadAllText(filePath).Replace(originalContent, newContent);
+            var text = File.ReadAllText(filePath).Replace(oldContent, newContent);
             File.WriteAllText(filePath, text);
         }
 
@@ -116,5 +115,8 @@ namespace ResxResource.Resource
             }
             File.WriteAllText(filePath, text);
         }
+
+        private static string XmlEncode(string text)
+            => text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
     }
 }

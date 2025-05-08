@@ -1,9 +1,6 @@
 ﻿using Microsoft.VisualStudio.Extensibility;
 using Microsoft.VisualStudio.Extensibility.Commands;
-using Microsoft.VisualStudio.Extensibility.Shell;
 using Microsoft.VisualStudio.ProjectSystem.Query;
-using Microsoft.VisualStudio.Shell;
-using ResxResourceExtension.Model;
 using ResxResourceExtension.View;
 
 namespace ResxResourceExtension.Command
@@ -31,42 +28,19 @@ namespace ResxResourceExtension.Command
 
         public override async Task ExecuteCommandAsync(IClientContext context, CancellationToken cancellationToken)
         {
-            try
+            var toolWindow = Extensibility.Shell().GetToolWindow<ResxResourceWindow>();
+            if (toolWindow is ResxResourceWindow resxResourceWindow)
             {
-                await ExecuteAsync(context, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                await Extensibility.Shell().ShowPromptAsync(ex.Message, PromptOptions.OK, cancellationToken);
+                var projectName = await GetActiveProjectNameAsync(context, cancellationToken);
+                resxResourceWindow.UpdateActiveProject(projectName);
+                await resxResourceWindow.ShowAsync(true, cancellationToken);
             }
         }
 
-        private async Task ExecuteAsync(IClientContext context, CancellationToken cancellationToken)
+        private async Task<string> GetActiveProjectNameAsync(IClientContext context, CancellationToken cancellationToken)
         {
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            ResxResourceWindow.ShowWindow(async () =>
-            {
-                var activeProject = await context.GetActiveProjectAsync(t => t.With(t => t.Name), cancellationToken);
-                var activeProjectName = activeProject?.Name;
-                if (string.IsNullOrEmpty(activeProjectName))
-                {
-                    await Extensibility.Shell().ShowPromptAsync("Get active project failed", PromptOptions.OK, cancellationToken);
-                }
-
-                var result = await Extensibility.Workspaces().QueryProjectsAsync(
-                    t => t.With(t => t.Name)
-                        .With(t => t.Files.Where(t => t.FileName.EndsWith(".resx") || t.FileName.EndsWith(".Designer.cs")))
-                    , cancellationToken);
-
-                if (result != null)
-                {
-                    var findResult = result.Where(t => t.Files.Count > 0).ToList();
-                    var projects = findResult.Select(t => new ProjectModel(t.Name, [.. t.Files.Select(t => t.Path)])).ToList();
-                    projects.Sort();
-                    return new SolutionModel(activeProjectName ?? string.Empty, [.. projects]);
-                }
-                return new SolutionModel(activeProjectName ?? string.Empty, []);
-            });
+            var activeProject = await context.GetActiveProjectAsync(t => t.With(t => t.Name), cancellationToken);
+            return activeProject?.Name ?? string.Empty;
         }
 
         private const string guidSHLMainMenu = "d309f791-903f-11d0-9efc-00a0c911004f";

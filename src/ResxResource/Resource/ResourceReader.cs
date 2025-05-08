@@ -58,9 +58,9 @@ namespace ResxResource.Resource
                 return [];
             }
 
-            var text = File.ReadAllText(filePath).Replace(" ", "").Replace("\r", "").Replace("\n", "");
-            var pattern = "<dataname=\"([^<>\"]*?)\"xml:space=\"preserve\"><value>([^<>]*?)</value></data>";
-            var result = Regex.Matches(text, pattern);
+            var text = File.ReadAllText(filePath);
+            var pattern = "<data name=\"(.*?)\" xml:space=\"preserve\">\\s+<value>([^<>]*?)</value>\\s+</data>";
+            var result = Regex.Matches(text, pattern, RegexOptions.Multiline);
             return result.Cast<Match>().ToDictionary(
                 match => match.Groups[1].Value,
                 match => match.Groups[2].Value);
