@@ -1,4 +1,5 @@
 ﻿using ResxResource.Rule;
+using ResxResource.Util;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -103,6 +104,12 @@ namespace ResxResource.Resource
         private static void ReplaceContent(string filePath, string oldContent, string newContent)
         {
             var text = File.ReadAllText(filePath).Replace(oldContent, newContent);
+
+            if (FileUtil.IsUtf8WithBom(filePath))
+            {
+                text = FileUtil.GetBtf8BomString() + text;
+            }
+
             File.WriteAllText(filePath, text);
         }
 
@@ -113,6 +120,12 @@ namespace ResxResource.Resource
             {
                 text = text.Replace(keyValuePair.Key, keyValuePair.Value);
             }
+
+            if (FileUtil.IsUtf8WithBom(filePath))
+            {
+                text = FileUtil.GetBtf8BomString() + text;
+            }
+
             File.WriteAllText(filePath, text);
         }
 

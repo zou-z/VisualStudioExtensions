@@ -1,4 +1,5 @@
 ﻿using ResxResource.Rule;
+using ResxResource.Util;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -65,6 +66,11 @@ namespace ResxResource.Resource
 
             if (resourceKeyList.Count == 0)
             {
+                if (lines.Count > 0 && FileUtil.IsUtf8WithBom(filePath))
+                {
+                    lines[0] = FileUtil.GetBtf8BomString() + lines[0];
+                }
+
                 File.WriteAllLines(filePath, lines);
                 return true;
             }
