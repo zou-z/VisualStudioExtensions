@@ -78,16 +78,37 @@
                 </Setter>
             </Style>
         </Grid.Resources>
+        <vs:ExtensibilityUICommands.EventHandlers>
+            <vs:EventHandlerCollection>
+                <vs:EventHandler
+                    Command="{Binding LoadCommand, Mode=OneTime}"
+                    CounterTarget="{Binding RelativeSource={RelativeSource Self}}"
+                    Event="Loaded" />
+                <vs:EventHandler
+                    Command="{Binding UnloadCommand, Mode=OneTime}"
+                    CounterTarget="{Binding RelativeSource={RelativeSource Self}}"
+                    Event="Unloaded" />
+            </vs:EventHandlerCollection>
+        </vs:ExtensibilityUICommands.EventHandlers>
 
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <ComboBox
-            Grid.Row="0"
-            Margin="10,10,10,0"
-            ItemsSource="{Binding ProjectNames, Mode=OneWay}"
-            SelectedItem="{Binding SelectedProjectName, Mode=TwoWay}" />
+        <DockPanel Grid.Row="0" Margin="10,10,10,0">
+            <Button
+                MinWidth="30"
+                Padding="0"
+                Command="{Binding Solution.RefreshCommand, Mode=OneTime}"
+                Content="&#xE72C;"
+                DockPanel.Dock="Right"
+                FontFamily="Segoe MDL2 Assets"
+                ToolTip="Refresh Projects" />
+            <ComboBox
+                DisplayMemberPath="Name"
+                ItemsSource="{Binding Solution.Projects, Mode=OneWay}"
+                SelectedItem="{Binding Solution.SelectedProject, Mode=TwoWay}" />
+        </DockPanel>
 
         <TabControl
             Grid.Row="1"
@@ -106,13 +127,13 @@
                         VerticalContentAlignment="Top"
                         AcceptsReturn="True"
                         HorizontalScrollBarVisibility="Auto"
-                        Text="{Binding ImportText, Mode=TwoWay}"
+                        Text="{Binding Import.ImportText, Mode=TwoWay}"
                         VerticalScrollBarVisibility="Auto" />
                     <StackPanel
                         Grid.Row="1"
                         Margin="0,10,0,0"
                         HorizontalAlignment="Right">
-                        <Button Command="{Binding ImportCommand, Mode=OneTime}" Content="Confirm" />
+                        <Button Command="{Binding Import.ImportCommand, Mode=OneTime}" Content="Confirm" />
                     </StackPanel>
                 </Grid>
             </TabItem>
@@ -126,10 +147,18 @@
                     </Grid.RowDefinitions>
                     <DockPanel Grid.Row="0">
                         <Button
-                            Command="{Binding SearchCommand, Mode=OneTime}"
-                            Content="Search"
-                            DockPanel.Dock="Right" />
-                        <TextBox Text="{Binding SearchText, Mode=TwoWay}" />
+                            MinWidth="30"
+                            Padding="0"
+                            Command="{Binding Resource.FilterResourcesCommand, Mode=OneTime}"
+                            Content="&#xE71E;"
+                            DockPanel.Dock="Right"
+                            FontFamily="Segoe MDL2 Assets"
+                            ToolTip="Search" />
+                        <TextBox Text="{Binding Resource.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding Resource.FilterResourcesCommand, Mode=OneTime}" />
+                            </TextBox.InputBindings>
+                        </TextBox>
                     </DockPanel>
 
                     <StackPanel
@@ -140,15 +169,15 @@
                         <Button
                             MinWidth="24"
                             Padding="0"
-                            Command="{Binding RefreshCommand, Mode=OneTime}"
+                            Command="{Binding Resource.ReloadResourcesCommand, Mode=OneTime}"
                             Content="&#xE72C;"
                             FontFamily="Segoe MDL2 Assets"
-                            ToolTip="Refresh" />
+                            ToolTip="Refresh Resources" />
                         <Button
                             MinWidth="24"
                             Margin="10,0,0,0"
                             Padding="0"
-                            Command="{Binding SelectAllCommand, Mode=OneTime}"
+                            Command="{Binding Resource.SelectAllCommand, Mode=OneTime}"
                             Content="&#xE8B3;"
                             FontFamily="Segoe MDL2 Assets"
                             ToolTip="Select All Items" />
@@ -156,7 +185,7 @@
                             MinWidth="24"
                             Margin="10,0,0,0"
                             Padding="0"
-                            Command="{Binding ClearSelectedCommand, Mode=OneTime}"
+                            Command="{Binding Resource.ClearSelectedCommand, Mode=OneTime}"
                             Content="&#xE8E6;"
                             FontFamily="Segoe MDL2 Assets"
                             ToolTip="Clear Selected Items" />
@@ -164,7 +193,7 @@
                             MinWidth="24"
                             Margin="10,0,0,0"
                             Padding="0"
-                            Command="{Binding SaveChangesCommand, Mode=OneTime}"
+                            Command="{Binding Resource.SaveChangesCommand, Mode=OneTime}"
                             Content="&#xE74E;"
                             FontFamily="Segoe MDL2 Assets"
                             ToolTip="Save Changes" />
@@ -172,7 +201,7 @@
                             MinWidth="24"
                             Margin="10,0,0,0"
                             Padding="0"
-                            Command="{Binding DeleteSelectedCommand, Mode=OneTime}"
+                            Command="{Binding Resource.DeleteSelectedCommand, Mode=OneTime}"
                             Content="&#xE74D;"
                             FontFamily="Segoe MDL2 Assets"
                             ToolTip="Delete Selected Items" />
@@ -180,7 +209,7 @@
                             MinWidth="24"
                             Margin="10,0,0,0"
                             Padding="0"
-                            Command="{Binding CopySelectedCommand, Mode=OneTime}"
+                            Command="{Binding Resource.CopySelectedCommand, Mode=OneTime}"
                             Content="&#xE8C8;"
                             FontFamily="Segoe MDL2 Assets"
                             ToolTip="Copy Selected Items To Clipboard" />
@@ -189,7 +218,7 @@
                     <ListBox
                         Grid.Row="2"
                         Margin="0,10,0,0"
-                        ItemsSource="{Binding Resources, Mode=OneWay}"
+                        ItemsSource="{Binding Resource.Resources, Mode=OneWay}"
                         Style="{StaticResource ResourceListBoxStyle}">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="model:ResourceModel">
@@ -203,7 +232,16 @@
                                             Grid.Column="0"
                                             Margin="8,8,0,0"
                                             VerticalAlignment="Top"
-                                            IsChecked="{Binding IsSelected, Mode=TwoWay}" />
+                                            IsChecked="{Binding IsSelected, Mode=TwoWay}">
+                                            <vs:ExtensibilityUICommands.EventHandlers>
+                                                <vs:EventHandlerCollection>
+                                                    <vs:EventHandler
+                                                        Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.Resource.UpdateSelectedResourceCountCommand, Mode=OneTime}"
+                                                        CounterTarget="{Binding RelativeSource={RelativeSource Self}}"
+                                                        Event="Click" />
+                                                </vs:EventHandlerCollection>
+                                            </vs:ExtensibilityUICommands.EventHandlers>
+                                        </CheckBox>
                                         <StackPanel Grid.Column="1" Margin="8">
                                             <TextBox x:Name="keyTextBox" Text="{Binding Key, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                                             <TextBox
@@ -231,12 +269,20 @@
 
                     <DockPanel Grid.Row="3" Height="22">
                         <TextBlock
-                            Margin="10,0,0,0"
+                            Margin="20,0,0,0"
                             VerticalAlignment="Center"
                             DockPanel.Dock="Right"
                             FontWeight="Normal">
-                            <Run Text="{Binding ResourceCount, Mode=OneWay}" />
+                            <Run Text="{Binding Resource.ResourceCount, Mode=OneWay}" />
                             <Run Text="items" />
+                        </TextBlock>
+                        <TextBlock
+                            Margin="20,0,0,0"
+                            VerticalAlignment="Center"
+                            DockPanel.Dock="Right"
+                            FontWeight="Normal">
+                            <Run Text="{Binding Resource.SelectedResourceCount, Mode=OneWay}" />
+                            <Run Text="selected" />
                         </TextBlock>
                         <TextBlock
                             VerticalAlignment="Center"

@@ -1,6 +1,5 @@
 ﻿using Microsoft.VisualStudio.Extensibility;
 using Microsoft.VisualStudio.Extensibility.Commands;
-using Microsoft.VisualStudio.ProjectSystem.Query;
 using ResxResourceExtension.View;
 
 namespace ResxResourceExtension.Command
@@ -28,19 +27,7 @@ namespace ResxResourceExtension.Command
 
         public override async Task ExecuteCommandAsync(IClientContext context, CancellationToken cancellationToken)
         {
-            var toolWindow = Extensibility.Shell().GetToolWindow<ResxResourceWindow>();
-            if (toolWindow is ResxResourceWindow resxResourceWindow)
-            {
-                var projectName = await GetActiveProjectNameAsync(context, cancellationToken);
-                resxResourceWindow.UpdateActiveProject(projectName);
-                await resxResourceWindow.ShowAsync(true, cancellationToken);
-            }
-        }
-
-        private async Task<string> GetActiveProjectNameAsync(IClientContext context, CancellationToken cancellationToken)
-        {
-            var activeProject = await context.GetActiveProjectAsync(t => t.With(t => t.Name), cancellationToken);
-            return activeProject?.Name ?? string.Empty;
+            await Extensibility.Shell().ShowToolWindowAsync<ResxResourceWindow>(true, cancellationToken);
         }
 
         private const string guidSHLMainMenu = "d309f791-903f-11d0-9efc-00a0c911004f";
