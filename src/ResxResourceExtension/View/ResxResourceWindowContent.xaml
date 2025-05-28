@@ -106,7 +106,7 @@
                 ToolTip="Refresh Projects" />
             <ComboBox
                 DisplayMemberPath="Name"
-                ItemsSource="{Binding Solution.Projects, Mode=OneWay}"
+                ItemsSource="{Binding Solution.Projects, Mode=OneTime}"
                 SelectedItem="{Binding Solution.SelectedProject, Mode=TwoWay}" />
         </DockPanel>
 
@@ -269,7 +269,7 @@
 
                     <DockPanel Grid.Row="3" Height="22">
                         <TextBlock
-                            Margin="20,0,0,0"
+                            Margin="10,0,0,0"
                             VerticalAlignment="Center"
                             DockPanel.Dock="Right"
                             FontWeight="Normal">
@@ -277,7 +277,7 @@
                             <Run Text="items" />
                         </TextBlock>
                         <TextBlock
-                            Margin="20,0,0,0"
+                            Margin="10,0,0,0"
                             VerticalAlignment="Center"
                             DockPanel.Dock="Right"
                             FontWeight="Normal">

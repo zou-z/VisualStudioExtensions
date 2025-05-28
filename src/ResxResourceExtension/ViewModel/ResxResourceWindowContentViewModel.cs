@@ -54,7 +54,7 @@ namespace ResxResourceExtension.ViewModel
 
         private async Task LoadAsync(object? parameter, IClientContext context, CancellationToken token)
         {
-            if (Solution.Projects == null)
+            if (Solution.Projects.Count == 0)
             {
                 await Solution.RefreshCommand.ExecuteAsync(parameter, context, token);
             }

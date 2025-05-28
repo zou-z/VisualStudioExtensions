@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.Extensibility.UI;
 using Microsoft.VisualStudio.ProjectSystem.Query;
 using ResxResourceExtension.Model;
+using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
 
 namespace ResxResourceExtension.ViewModel
@@ -16,11 +17,7 @@ namespace ResxResourceExtension.ViewModel
         }
 
         [DataMember]
-        public ProjectModel[]? Projects
-        {
-            get => projects;
-            set => SetProperty(ref projects, value);
-        }
+        public ObservableCollection<ProjectModel> Projects => projects;
 
         [DataMember]
         public ProjectModel? SelectedProject
@@ -41,15 +38,18 @@ namespace ResxResourceExtension.ViewModel
         public void Cleanup()
         {
             selectedProject = null;
-            Projects = null;
+            Projects.Clear();
         }
 
         private async Task RefreshAsync(object? parameter, IClientContext client, CancellationToken token)
         {
-            Projects = await GetProjectsAsync(client, token);
+            await LoadingTipViewModel.Instance.ExecuteWithTipAsync(async () =>
+            {
+                UpdateProjects([.. await GetProjectsAsync(client, token)]);
 
-            var activeProjectName = await GetActiveProjectNameAsync(client, token);
-            SelectedProject = Projects?.FirstOrDefault(t => t.Name == activeProjectName);
+                var activeProjectName = await GetActiveProjectNameAsync(client, token);
+                SelectedProject = Projects?.FirstOrDefault(t => t.Name == activeProjectName);
+            });
         }
 
         private async Task<ProjectModel[]> GetProjectsAsync(IClientContext client, CancellationToken token)
@@ -77,8 +77,32 @@ namespace ResxResourceExtension.ViewModel
             return activeProject?.Name ?? string.Empty;
         }
 
+        private void UpdateProjects(List<ProjectModel> projects)
+        {
+            for (int i = Projects.Count - 1; i >= 0; --i)
+            {
+                int j = projects.Count - 1;
+                for (; j >= 0; --j)
+                {
+                    if (Projects[i].Equals(projects[j]))
+                    {
+                        projects.RemoveAt(j);
+                        break;
+                    }
+                }
+
+                if (j < 0)
+                    Projects.RemoveAt(i);
+            }
+
+            foreach (var project in projects)
+            {
+                Projects.Add(project);
+            }
+        }
+
         private readonly Action selectedProjectChangedCallback;
-        private ProjectModel[]? projects = null;
+        private readonly ObservableCollection<ProjectModel> projects = [];
         private ProjectModel? selectedProject = null;
     }
 }
