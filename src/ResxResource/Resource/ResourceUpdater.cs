@@ -103,30 +103,22 @@ namespace ResxResource.Resource
 
         private static void ReplaceContent(string filePath, string oldContent, string newContent)
         {
+            var encoding = FileUtil.GetFileEncoding(filePath);
             var text = File.ReadAllText(filePath).Replace(oldContent, newContent);
 
-            if (FileUtil.IsUtf8WithBom(filePath))
-            {
-                text = FileUtil.GetBtf8BomString() + text;
-            }
-
-            File.WriteAllText(filePath, text);
+            File.WriteAllText(filePath, text, encoding);
         }
 
         private static void ReplaceContents(string filePath, Dictionary<string, string> replaceDictionary)
         {
+            var encoding = FileUtil.GetFileEncoding(filePath);
             var text = File.ReadAllText(filePath);
             foreach (var keyValuePair in replaceDictionary)
             {
                 text = text.Replace(keyValuePair.Key, keyValuePair.Value);
             }
 
-            if (FileUtil.IsUtf8WithBom(filePath))
-            {
-                text = FileUtil.GetBtf8BomString() + text;
-            }
-
-            File.WriteAllText(filePath, text);
+            File.WriteAllText(filePath, text, encoding);
         }
 
         private static string XmlEncode(string text)

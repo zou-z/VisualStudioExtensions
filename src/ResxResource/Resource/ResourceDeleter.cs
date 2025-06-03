@@ -66,12 +66,8 @@ namespace ResxResource.Resource
 
             if (resourceKeyList.Count == 0)
             {
-                if (lines.Count > 0 && FileUtil.IsUtf8WithBom(filePath))
-                {
-                    lines[0] = FileUtil.GetBtf8BomString() + lines[0];
-                }
-
-                File.WriteAllLines(filePath, lines);
+                var encoding = FileUtil.GetFileEncoding(filePath);
+                File.WriteAllLines(filePath, lines, encoding);
                 return true;
             }
             else
